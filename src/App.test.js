@@ -26,15 +26,6 @@ let errors = []
 beforeAll(async () => {
   browser = await puppeteer.launch(isDebugging())
   page = await browser.newPage()
-  await page.setRequestInterception(true)
-  page.on('request', interceptedRequest => {
-    if (interceptedRequest.url.includes('swapi')) { 
-      interceptedRequest.abort()
-    }
-    else {
-      interceptedRequest.continue()
-    }
-  })
   page.on('console', c => logs.push(c.text))
   page.on('pageerror', e => errors.push(e.text))
   await page.goto('http://localhost:3000/')
@@ -54,8 +45,14 @@ describe('on page load ', () => {
     const listItems = await page.$$('[data-testid="navBarLi"]')
 
     expect(navbar).toBe(true)
+    // uncomment following code to see screenshot in action
+    // if (listItems.length !== 3) 
+    //   await page.screenshot({path: 'screenshot.png'})
+
+    // expect(listItems.length).toBe(3)
+
     if (listItems.length !== 4) 
-      await page.screenshot({path: 'scrennshot.png'})
+      await page.screenshot({path: 'screenshot.png'})
 
     expect(listItems.length).toBe(4)
   })
@@ -100,12 +97,6 @@ describe('on page load ', () => {
   })
   test('does not have exceptions', () => {
     expect(errors.length).toBe(0)
-  })
-  test('fetches starWars endpoint', async () => {
-    const h3 = await page.$eval('[data-testid="starWars"]', e => e.innerHTML)
-
-    expect(h3).toBe('Received StarWars data!')
-    
   })
 })
 
