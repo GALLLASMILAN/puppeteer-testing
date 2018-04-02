@@ -26,6 +26,16 @@ let errors = []
 beforeAll(async () => {
   browser = await puppeteer.launch(isDebugging())
   page = await browser.newPage()
+  // set `setRequestInterception` to false to 
+  await page.setRequestInterception(true)
+  page.on('request', interceptedRequest => {
+    if (interceptedRequest.url.includes('swapi')) { 
+      interceptedRequest.abort()
+    }
+    else {
+      interceptedRequest.continue()
+    }
+  })
   page.on('console', c => logs.push(c.text))
   page.on('pageerror', e => errors.push(e.text))
   await page.goto('http://localhost:3000/')
@@ -45,12 +55,6 @@ describe('on page load ', () => {
     const listItems = await page.$$('[data-testid="navBarLi"]')
 
     expect(navbar).toBe(true)
-    // uncomment following code to see screenshot in action
-    // if (listItems.length !== 3) 
-    //   await page.screenshot({path: 'screenshot.png'})
-
-    // expect(listItems.length).toBe(3)
-
     if (listItems.length !== 4) 
       await page.screenshot({path: 'screenshot.png'})
 
@@ -90,13 +94,18 @@ describe('on page load ', () => {
       expect(firstNameCookie).not.toBeUndefined()
     })
   })
-  test('does not have console logs', () => {
+  test.skip('does not have console logs', () => {
     const newLogs = logs.filter( s => s !== '%cDownload the React DevTools for a better development experience: https://fb.me/react-devtools font-weight:bold')
 
     expect(newLogs.length).toBe(0)
   })
-  test('does not have exceptions', () => {
+  test.skip('does not have exceptions', () => {
     expect(errors.length).toBe(0)
+  })
+  test.only('fetches starWars endpoint', async () => {
+    const h3 = await page.$eval('[data-testid="starWars"]', e => e.innerHTML)
+    expect(h3).toBe('Something went wrong')
+    
   })
 })
 
