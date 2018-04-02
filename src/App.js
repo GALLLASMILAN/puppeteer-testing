@@ -18,6 +18,7 @@ class App extends Component {
       })
     }
     document.cookie = `firstName=${this.state.firstName}`
+    throw new Error('Whoops!')
   }
   handleInput = e => {
     this.setState({
